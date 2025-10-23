@@ -32,8 +32,8 @@ void Hud::draw(sf::RenderWindow& win, const Snake& s1, const Snake& s2, int msLe
         t3.setString(msToClock(msLeft));
         
         // Thông tin boost
-        int p1_boost_remaining = 5000 - s1.getTotalBoostTime();
-        int p2_boost_remaining = 5000 - s2.getTotalBoostTime();
+        int p1_boost_remaining = 3000 - s1.getTotalBoostTime();
+        int p2_boost_remaining = 3000 - s2.getTotalBoostTime();
         t4.setString("P1 boost: " + std::to_string(p1_boost_remaining / 1000) + "s");
         t5.setString("P2 boost: " + std::to_string(p2_boost_remaining / 1000) + "s");
 

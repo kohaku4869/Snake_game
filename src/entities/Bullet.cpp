@@ -23,7 +23,7 @@ void Bullet::update(int dt_ms) {
 	
 	// Đạn laser có tốc độ siêu nhanh (3x tốc độ bình thường)
 	if (type_ == BulletType::Laser) {
-		speed *= 3.0f;
+		speed *= 5.0f;
 	}
 	// Đạn đuổi có tốc độ 50% và tự động đuổi theo mục tiêu
 	else if (type_ == BulletType::Homing && has_target_) {

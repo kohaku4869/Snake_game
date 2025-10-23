@@ -122,7 +122,7 @@ void Snake::tickBuffs(int dt_ms) {
         total_boost_time_ms_ += dt_ms;
         
         // Kiểm tra nếu vượt quá 5 giây boost
-        if (total_boost_time_ms_ >= 5000) {
+        if (total_boost_time_ms_ >= 3000) {
             // Phạt -1 độ dài và reset boost time
             shrink(1);
             total_boost_time_ms_ = 0;
