@@ -19,7 +19,6 @@ struct BuffState {
 };
 
 // Hướng cũ vẫn giữ để tương thích tạm thời ở nơi khác nếu cần
-enum class Dir { Up, Down, Left, Right };
 
 class Snake {
 public:

@@ -2,7 +2,6 @@
 #include "Bullet.hpp"
 #include "../core/Config.hpp"
 #include "../grid/Grid.hpp"
-#include <algorithm>
 #include <cmath>
 #include <map>
 #include <set>

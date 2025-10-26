@@ -49,7 +49,7 @@ int collision::snakeEatItem(Snake& s, std::vector<std::unique_ptr<BaseItem>>& it
 				// Xử lý buff items
 				switch (buffItem->getBuffType()) {
 					case BuffType::Shield: s.giveShield(1); break;
-					case BuffType::X2: s.giveX2(30000); break;
+					case BuffType::X2: s.giveX2(15000); break;
 					case BuffType::Speed: s.giveSpeed(5000); break;
 					case BuffType::TripleShot: s.giveTripleShot(3); break;
 					case BuffType::LaserShot: s.giveLaserShot(3); break;

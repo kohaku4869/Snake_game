@@ -18,3 +18,9 @@ enum class BulletType {
     Laser,      // Đạn laser
     Homing      // Đạn đuổi
 };
+enum class Dir {
+    Up,
+    Down,
+    Left,
+    Right
+};
