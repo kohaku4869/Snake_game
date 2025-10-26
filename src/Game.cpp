@@ -116,7 +116,6 @@ void Game::update(int dt) {
 	// Cập nhật STL containers
 	updatePlayerScores();
 	updateOccupiedCells();
-	processGameEvents();
 	
 	// Xử lý tạo items thủ công
 	handleItemCreation();
@@ -135,11 +134,9 @@ void Game::update(int dt) {
 	// Phát âm thanh khi ăn
 	if (p1_eaten > 0) {
 		sound_manager_.playSound(SoundType::SnakeEat);
-		addGameEvent("Player 1 ate " + std::to_string(p1_eaten) + " items");
 	}
 	if (p2_eaten > 0) {
 		sound_manager_.playSound(SoundType::SnakeEat);
-		addGameEvent("Player 2 ate " + std::to_string(p2_eaten) + " items");
 	}
 
 	// đạn trúng rắn
@@ -148,9 +145,8 @@ void Game::update(int dt) {
 		if (hitSnake) {
 			if (hitSnake->alive()) {
 				int dmg = headHit ? cfg::HIT_HEAD_PENALTY : cfg::HIT_BODY_PENALTY;
-				// Buff đạn gây sát thương x1 (giảm từ x2 xuống x1)
-				if (b.type() == BulletType::Homing || b.type() == BulletType::Triple) {
-					dmg *= 1; // Không tăng sát thương
+				if (b.type() == BulletType::Laser) {
+					dmg *= 2;
 				}
 				hitSnake->shrink(dmg);
 			}
@@ -281,42 +277,13 @@ void Game::updateOccupiedCells() {
     }
 }
 
-void Game::addGameEvent(const std::string& event) {
-    game_events_.push(event);
-    
-    // Giới hạn số lượng events để tránh memory leak
-    if (game_events_.size() > 100) {
-        game_events_.pop();
-    }
-}
-
-void Game::processGameEvents() {
-    // Xử lý một số events từ queue (có thể mở rộng logic sau)
-    if (!game_events_.empty()) {
-        // Có thể thêm logic xử lý events ở đây
-        // Ví dụ: log events, update statistics, etc.
-    }
-}
-
 void Game::createAppleAt(Cell cell) {
     // Sử dụng trực tiếp lớp Apple
     items_.push_back(std::make_unique<Apple>(cell));
-    addGameEvent("Apple spawned at (" + std::to_string(cell.x) + ", " + std::to_string(cell.y) + ")");
 }
 
 void Game::createBuffAt(BuffType type, Cell cell, int lifetime_ms) {
-    // Sử dụng trực tiếp lớp BuffItem
     items_.push_back(std::make_unique<BuffItem>(type, cell, lifetime_ms));
-    std::string buffName;
-    switch (type) {
-        case BuffType::Shield: buffName = "Shield"; break;
-        case BuffType::X2: buffName = "X2"; break;
-        case BuffType::Speed: buffName = "Speed"; break;
-        case BuffType::TripleShot: buffName = "TripleShot"; break;
-        case BuffType::LaserShot: buffName = "LaserShot"; break;
-        case BuffType::HomingShot: buffName = "HomingShot"; break;
-    }
-    addGameEvent(buffName + " buff spawned at (" + std::to_string(cell.x) + ", " + std::to_string(cell.y) + ")");
 }
 
 void Game::removeDeadItems() {
@@ -371,33 +338,9 @@ void Game::handleShooting(Snake& shooter, Snake& target) {
 
 // Helper function để cập nhật bullets
 void Game::updateBullets(int dt_ms) {
+	std::vector<Snake*> snakes{ &p1_, &p2_ };
     for (auto& b : bullets_) {
-        // Cập nhật mục tiêu cho đạn đuổi
-        if (b.type() == BulletType::Homing) {
-            // Tìm rắn địch gần nhất
-            Snake* closestEnemy = nullptr;
-            float closestDist2 = std::numeric_limits<float>::max();
-            
-            std::vector<Snake*> snakes{ &p1_, &p2_ };
-            for (auto* s : snakes) {
-                if (s->id() == b.owner() || !s->alive()) continue;
-                const auto& body = s->bodyPx();
-                if (body.empty()) continue;
-                
-                float dist2_to_head = (b.pos().x - body.front().x) * (b.pos().x - body.front().x) + 
-                                    (b.pos().y - body.front().y) * (b.pos().y - body.front().y);
-                if (dist2_to_head < closestDist2) {
-                    closestDist2 = dist2_to_head;
-                    closestEnemy = s;
-                }
-            }
-            
-            // Cập nhật mục tiêu cho đạn đuổi
-            if (closestEnemy) {
-                b.setTarget(closestEnemy->headPx());
-            }
-        }
-        
+    	b.updateHomingTarget(snakes);
         b.update(dt_ms);
     }
     bullets_.erase(std::remove_if(bullets_.begin(), bullets_.end(), [](auto& x){return !x.alive();}), bullets_.end());

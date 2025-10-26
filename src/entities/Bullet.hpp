@@ -5,12 +5,7 @@
 // Forward declaration để tránh circular dependency
 class Snake;
 
-enum class BulletType {
-    Normal,     // Đạn bình thường
-    Triple,     // Đạn 3 tia
-    Laser,      // Đạn laser
-    Homing      // Đạn đuổi
-};
+
 
 class Bullet {
 public:
@@ -28,6 +23,7 @@ public:
 	// Cho đạn đuổi
 	void setTarget(const sf::Vector2f& targetPos);
 	void setTargetSnake(int snakeId) { target_snake_id_ = snakeId; }
+	void updateHomingTarget(const std::vector<Snake*>& snakes);
 
 private:
 	int ownerId_;
@@ -40,5 +36,4 @@ private:
 	int target_snake_id_ = -1;
 	sf::Vector2f target_pos_;
 	bool has_target_ = false;
-	float homing_speed_factor_ = 0.5f; // 50% tốc độ đạn bình thường
 };

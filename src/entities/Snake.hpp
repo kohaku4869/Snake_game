@@ -56,9 +56,9 @@ public:
 	bool hasX2() const { return buffs_.x2_ms > 0; }
 	
 	// buff đạn - hệ thống đạn
-	void giveTripleShot(int ammo = 2) { buffs_.triple_shot_ammo += ammo; }
-	void giveLaserShot(int ammo = 2) { buffs_.laser_shot_ammo += ammo; }
-	void giveHomingShot(int ammo = 2) { buffs_.homing_shot_ammo += ammo; }
+	void giveTripleShot(int ammo = 3) { buffs_.triple_shot_ammo += ammo; }
+	void giveLaserShot(int ammo = 3) { buffs_.laser_shot_ammo += ammo; }
+	void giveHomingShot(int ammo = 3) { buffs_.homing_shot_ammo += ammo; }
 	bool hasTripleShot() const { return buffs_.triple_shot_ammo > 0; }
 	bool hasLaserShot() const { return buffs_.laser_shot_ammo > 0; }
 	bool hasHomingShot() const { return buffs_.homing_shot_ammo > 0; }

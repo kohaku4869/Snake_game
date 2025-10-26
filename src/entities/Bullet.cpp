@@ -15,6 +15,25 @@ void Bullet::setTarget(const sf::Vector2f& targetPos) {
     target_pos_ = targetPos;
     has_target_ = true;
 }
+static inline float dist2(const sf::Vector2f& a, const sf::Vector2f& b) {
+	float dx = a.x - b.x, dy = a.y - b.y;
+	return dx*dx + dy*dy;
+}
+
+void Bullet::updateHomingTarget(const std::vector<Snake*>& snakes) {
+	if (type() != BulletType::Homing || !alive()) return;
+
+	const sf::Vector2f p = pos();
+	const Snake* closest = nullptr;
+	float best = std::numeric_limits<float>::infinity();
+
+	for (const Snake* s : snakes) {
+		if (s->id()==ownerId_) continue;
+		float d = dist2(p, s->headPx());
+		if (d < best) { best = d; closest = s; }
+	}
+	if (closest) setTarget(closest->headPx());
+}
 
 void Bullet::update(int dt_ms) {
 	if (!alive_) return;
@@ -27,12 +46,13 @@ void Bullet::update(int dt_ms) {
 	}
 	// Đạn đuổi có tốc độ 50% và tự động đuổi theo mục tiêu
 	else if (type_ == BulletType::Homing && has_target_) {
-		speed *= homing_speed_factor_;
-		
+
+		speed *= 0.5f;
+
 		// Tính hướng đến mục tiêu
 		sf::Vector2f direction = target_pos_ - pos_;
 		float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
-		
+
 		if (distance > 0.1f) { // Tránh chia cho 0
 			direction.x /= distance;
 			direction.y /= distance;
@@ -63,7 +83,7 @@ void Bullet::draw(sf::RenderWindow& win) const {
 			bulletColor = sf::Color::Yellow;
 			break;
 		case BulletType::Laser:
-			bulletColor = sf::Color(0, 0, 255); // Xanh dương đậm
+			bulletColor = sf::Color::Blue;
 			break;
 		case BulletType::Homing:
 			bulletColor = sf::Color::Magenta;

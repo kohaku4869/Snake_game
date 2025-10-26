@@ -13,30 +13,6 @@ std::pair<Snake*, bool> collision::bulletHitSnake(const Bullet& b, std::vector<S
 	const sf::Vector2f bp = b.pos();
 	const float sumR2_head = (cfg::BULLET_RADIUS_PX + cfg::SNAKE_RADIUS_PX) * (cfg::BULLET_RADIUS_PX + cfg::SNAKE_RADIUS_PX);
 	
-	// Đạn đuổi cập nhật mục tiêu liên tục
-	if (b.type() == BulletType::Homing) {
-		// Tìm rắn địch gần nhất
-		Snake* closestEnemy = nullptr;
-		float closestDist2 = std::numeric_limits<float>::max();
-		
-		for (auto* s : snakes) {
-			if (s->id() == b.owner() || !s->alive()) continue;
-			const auto& body = s->bodyPx();
-			if (body.empty()) continue;
-			
-			float dist2_to_head = dist2(body.front(), bp);
-			if (dist2_to_head < closestDist2) {
-				closestDist2 = dist2_to_head;
-				closestEnemy = s;
-			}
-		}
-		
-		// Cập nhật mục tiêu cho đạn đuổi
-		if (closestEnemy) {
-			const_cast<Bullet&>(b).setTarget(closestEnemy->headPx());
-		}
-	}
-	
 	for (auto* s : snakes) {
 		if (s->id() == b.owner()) continue;
 		const auto& body = s->bodyPx();
@@ -49,95 +25,6 @@ std::pair<Snake*, bool> collision::bulletHitSnake(const Bullet& b, std::vector<S
 		}
 	}
 	return {nullptr, false};
-}
-
-void collision::handleLaserShot(Snake& shooter, std::vector<Snake*>& snakes) {
-	if (!shooter.alive()) return;
-	
-	sf::Vector2f startPos = shooter.headPx();
-	float heading = shooter.headingRad();
-	
-	// Tạo vector hướng laser
-	sf::Vector2f direction(std::cos(heading), std::sin(heading));
-	
-	// Tìm rắn gần nhất trên đường laser
-	Snake* closestTarget = nullptr;
-	float closestDistance = std::numeric_limits<float>::max();
-	bool hitHead = false;
-	
-	for (auto* target : snakes) {
-		if (target == &shooter || !target->alive()) continue;
-		
-		const auto& body = target->bodyPx();
-		if (body.empty()) continue;
-		
-		// Kiểm tra từng segment của rắn
-		for (size_t i = 0; i < body.size(); ++i) {
-			sf::Vector2f segmentPos = body[i];
-			
-			// Tính khoảng cách từ segment đến đường laser
-			sf::Vector2f toSegment = segmentPos - startPos;
-			float dotProduct = toSegment.x * direction.x + toSegment.y * direction.y;
-			
-			// Chỉ xét các segment ở phía trước (theo hướng laser)
-			if (dotProduct < 0) continue;
-			
-			// Tính khoảng cách vuông góc từ segment đến đường laser
-			sf::Vector2f projection = startPos + direction * dotProduct;
-			float perpendicularDist2 = dist2(segmentPos, projection);
-			float hitRadius2 = cfg::SNAKE_RADIUS_PX * cfg::SNAKE_RADIUS_PX;
-			
-			if (perpendicularDist2 <= hitRadius2) {
-				// Segment này bị laser trúng
-				if (dotProduct < closestDistance) {
-					closestDistance = dotProduct;
-					closestTarget = target;
-					hitHead = (i == 0); // Đầu rắn
-				}
-			}
-		}
-	}
-	
-	// Gây sát thương cho mục tiêu gần nhất
-	if (closestTarget) {
-		int damage = hitHead ? cfg::HIT_HEAD_PENALTY : cfg::HIT_BODY_PENALTY;
-		// Laser gây sát thương x2
-		damage *= 2;
-		closestTarget->shrink(damage);
-	}
-}
-
-void collision::drawLaserShot(sf::RenderWindow& window, Snake& shooter) {
-	if (!shooter.alive() || !shooter.hasLaserShot()) return;
-	
-	sf::Vector2f startPos = shooter.headPx();
-	float heading = shooter.headingRad();
-	
-	// Tạo vector hướng laser
-	sf::Vector2f direction(std::cos(heading), std::sin(heading));
-	
-	// Tính điểm kết thúc của tia laser (đến cuối màn hình)
-	float maxDistance = std::max(cfg::WORLD_W_PX, cfg::WORLD_H_PX);
-	sf::Vector2f endPos = startPos + direction * maxDistance;
-	
-	// Tạo line để vẽ tia laser màu xanh
-	sf::Vertex line[2];
-	line[0].position = startPos;
-	line[0].color = sf::Color::Cyan; // Màu xanh dương
-	line[1].position = endPos;
-	line[1].color = sf::Color::Cyan;
-	
-	// Vẽ tia laser với độ dày
-	window.draw(line, 2, sf::Lines);
-	
-	// Vẽ thêm một tia mỏng hơn để tạo hiệu ứng
-	sf::Vertex thinLine[2];
-	thinLine[0].position = startPos;
-	thinLine[0].color = sf::Color(0, 255, 255, 128); // Xanh nhạt hơn
-	thinLine[1].position = endPos;
-	thinLine[1].color = sf::Color(0, 255, 255, 128);
-	
-	window.draw(thinLine, 2, sf::Lines);
 }
 
 int collision::snakeEatItem(Snake& s, std::vector<std::unique_ptr<BaseItem>>& items) {

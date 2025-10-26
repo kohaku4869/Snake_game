@@ -15,7 +15,6 @@ add_executable(${PROJECT_NAME}
         src/core/Config.hpp
         src/core/Types.hpp
 #        src/core/Utils.hpp
-        src/core/Input.hpp
         src/Game.cpp
         src/Game.hpp
         src/grid/Grid.cpp
@@ -38,7 +37,6 @@ add_executable(${PROJECT_NAME}
         src/systems/SoundManager.hpp
         src/ui/Hud.cpp
         src/ui/Hud.hpp
-        src/entities/ItemFactory.hpp
         #        src/core/Utils.hpp
 
 )

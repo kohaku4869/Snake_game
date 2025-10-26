@@ -32,7 +32,7 @@ public:
     Cell getCell() const { return cell_; }
 
     // Factory method để tạo item theo loại
-    static std::unique_ptr<BaseItem> createItem(int itemType, Cell cell, int lifetime_ms = 0);
+    // static std::unique_ptr<BaseItem> createItem(int itemType, Cell cell, int lifetime_ms = 0);
 
 protected:
     Cell cell_;

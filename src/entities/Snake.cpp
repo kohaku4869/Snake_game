@@ -256,14 +256,7 @@ bool Snake::tryShoot() {
     
     shoot_cd_ms_ = cfg::SHOOT_COOLDOWN_MS;
     shoot_edge_ = false; // reset edge trigger
-    
-    // Chỉ trừ đuôi khi thực sự bắn được (không phải laser)
-    if (!hasLaserShot()) {
-        // thực hiện trừ trực tiếp đuôi, bỏ qua khiên: thao tác trực tiếp
-        for (int i = 0; i < cfg::SHOOT_COST && !body_px_.empty(); ++i) body_px_.pop_back();
-        length_ = (int)body_px_.size();
-        if (length_ <= 1) alive_ = false;
-    }
+
     return true;
 }
 

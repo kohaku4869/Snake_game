@@ -6,17 +6,7 @@
 
 #pragma once
 #include "BaseItem.hpp"
-
-// Các loại buff
-enum class BuffType {
-    Shield,
-    X2,
-    Speed,
-    TripleShot,
-    LaserShot,
-    HomingShot
-};
-
+#include "core/Types.hpp"
 /**
  * @class BuffItem
  * @brief Lớp đại diện cho các buff trong game
