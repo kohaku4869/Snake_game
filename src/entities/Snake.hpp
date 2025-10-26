@@ -40,7 +40,7 @@ public:
 	// bắn: trả về true nếu bắn được (edge-trigger + cooldown + đủ độ dài)
 	bool tryShoot();
 	
-	// Tạo đạn theo loại buff hiện tại
+	// Tạo đạn với STL containers và tổ chức tốt hơn
 	std::vector<Bullet> createBullets();
 
 	// truy cập

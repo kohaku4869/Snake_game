@@ -4,6 +4,9 @@
 #include "../grid/Grid.hpp"
 #include <algorithm>
 #include <cmath>
+#include <map>
+#include <set>
+#include <iostream>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -26,18 +29,22 @@ namespace {
 Snake::Snake(int id, sf::Color color, Cell start, Dir d, int init_len)
 : id_(id), color_(color), length_(init_len) {
     // Load textures based on snake color
-    if (id == 1) {
-        // Player 1 - Blue snake
-        head_texture_.loadFromFile("assets/NewTexture/BlueHead.png");
-        body_texture_.loadFromFile("assets/NewTexture/BlueBody.png");
-    } else if (id == 2) {
-        // Player 2 - Yellow snake
-        head_texture_.loadFromFile("assets/NewTexture/YellowHead.png");
-        body_texture_.loadFromFile("assets/NewTexture/YellowBody.png");
-    } else {
-        // Default - Green snake
-        head_texture_.loadFromFile("assets/Textures/SnakeHead.png");
-        body_texture_.loadFromFile("assets/Textures/SnakeBody.png");
+    try {
+        if (id == 1) {
+            // Player 1 - Blue snake
+            head_texture_.loadFromFile("assets/NewTexture/BlueHead.png");
+            body_texture_.loadFromFile("assets/NewTexture/BlueBody.png");
+        } else if (id == 2) {
+            // Player 2 - Yellow snake
+            head_texture_.loadFromFile("assets/NewTexture/YellowHead.png");
+            body_texture_.loadFromFile("assets/NewTexture/YellowBody.png");
+        } else {
+            // Default - Green snake
+            head_texture_.loadFromFile("assets/Textures/SnakeHead.png");
+            body_texture_.loadFromFile("assets/Textures/SnakeBody.png");
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Error loading snake textures for player " << id << ": " << e.what() << std::endl;
     }
     
     // Khởi tạo body_px_ từ vị trí grid
@@ -121,7 +128,7 @@ void Snake::tickBuffs(int dt_ms) {
         current_boost_session_ms_ += dt_ms;
         total_boost_time_ms_ += dt_ms;
         
-        // Kiểm tra nếu vượt quá 5 giây boost
+        // Kiểm tra nếu vượt quá 3 giây boost
         if (total_boost_time_ms_ >= 3000) {
             // Phạt -1 độ dài và reset boost time
             shrink(1);
@@ -293,29 +300,41 @@ void Snake::resetBoostTime() {
     current_boost_session_ms_ = 0;
 }
 
+
 std::vector<Bullet> Snake::createBullets() {
     std::vector<Bullet> bullets;
     
     if (!alive_) return bullets;
     
+    // Sử dụng STL containers để quản lý bullet types
+    std::map<BulletType, int> bulletAmmo = {
+        {BulletType::Laser, buffs_.laser_shot_ammo},
+        {BulletType::Homing, buffs_.homing_shot_ammo},
+        {BulletType::Triple, buffs_.triple_shot_ammo}
+    };
+    
+    // Sử dụng set để xác định loại đạn ưu tiên
+    std::set<BulletType> availableTypes;
+    for (const auto& [type, ammo] : bulletAmmo) {
+        if (ammo > 0) {
+            availableTypes.insert(type);
+        }
+    }
+    
     sf::Vector2f headPos = headPx();
     float heading = headingRad();
     
-    // Đạn laser - đạn siêu nhanh màu xanh dương đậm
-    if (hasLaserShot()) {
-        // Sử dụng 1 đạn laser
+    // Xử lý theo thứ tự ưu tiên
+    if (availableTypes.count(BulletType::Laser)) {
+        // Laser shot - ưu tiên cao nhất
         useLaserShot();
         bullets.emplace_back(id_, headPos, heading, BulletType::Laser);
-    }
-    // Đạn đuổi - 1 viên đạn đuổi theo địch
-    else if (hasHomingShot()) {
-        // Sử dụng 1 đạn đuổi
+    } else if (availableTypes.count(BulletType::Homing)) {
+        // Homing shot - ưu tiên thứ hai
         useHomingShot();
         bullets.emplace_back(id_, headPos, heading, BulletType::Homing);
-    }
-    // Đạn 3 tia
-    else if (hasTripleShot()) {
-        // Sử dụng 1 đạn 3 tia
+    } else if (availableTypes.count(BulletType::Triple)) {
+        // Triple shot - ưu tiên thứ ba
         useTripleShot();
         // Tạo 3 viên đạn với góc khác nhau
         float angleOffset = M_PI / 6; // 30 độ
@@ -323,9 +342,8 @@ std::vector<Bullet> Snake::createBullets() {
             float angle = heading + (i - 1) * angleOffset;
             bullets.emplace_back(id_, headPos, angle, BulletType::Triple);
         }
-    }
-    // Đạn bình thường
-    else {
+    } else {
+        // Đạn bình thường
         bullets.emplace_back(id_, headPos, heading, BulletType::Normal);
     }
     

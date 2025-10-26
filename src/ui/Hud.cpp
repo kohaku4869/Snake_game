@@ -2,6 +2,7 @@
 #include "../core/Config.hpp"
 #include <string>
 #include <cstdio>
+#include <iostream>
 
 
 Hud::Hud() {
@@ -45,4 +46,125 @@ void Hud::draw(sf::RenderWindow& win, const Snake& s1, const Snake& s2, int msLe
 
         win.draw(t1); win.draw(t2); win.draw(t3); win.draw(t4); win.draw(t5);
     }
+}
+
+void Hud::drawStartScreen(sf::RenderWindow& window_,const sf::Texture& start_screen_texture_,int max_length) {
+    // Vẽ background
+    sf::Sprite background_sprite(start_screen_texture_);
+    background_sprite.setScale(
+        (float)window_.getSize().x / start_screen_texture_.getSize().x,
+        (float)window_.getSize().y / start_screen_texture_.getSize().y
+    );
+    window_.draw(background_sprite);
+
+    // Tạo font để hiển thị
+    sf::Font font;
+    try {
+        if (!font.loadFromFile("assets/fonts/arial.ttf")) return;
+    } catch (const std::exception& e) {
+        std::cerr << "Error loading font in drawStartScreen: " << e.what() << std::endl;
+        return;
+    }
+
+    // Tiêu đề game
+    sf::Text titleText;
+    titleText.setFont(font);
+    titleText.setString("SNAKE BATTLE");
+    titleText.setCharacterSize(64);
+    titleText.setFillColor(sf::Color::Yellow);
+    titleText.setStyle(sf::Text::Bold);
+
+    // Căn giữa tiêu đề
+    sf::FloatRect titleBounds = titleText.getLocalBounds();
+    titleText.setPosition(
+        (window_.getSize().x - titleBounds.width) / 2,
+        window_.getSize().y / 4
+    );
+
+    // Max Length display
+    sf::Text maxLengthText;
+    maxLengthText.setFont(font);
+    maxLengthText.setString("Max Length: " + std::to_string(max_length));
+    maxLengthText.setCharacterSize(32);
+    maxLengthText.setFillColor(sf::Color::White);
+
+    // Căn giữa Max Length ở phía dưới chính giữa
+    sf::FloatRect maxLengthBounds = maxLengthText.getLocalBounds();
+    maxLengthText.setPosition(
+        (window_.getSize().x - maxLengthBounds.width) / 2,
+        window_.getSize().y * 3 / 4
+    );
+
+    // Hướng dẫn
+    sf::Text instructionText;
+    instructionText.setFont(font);
+    instructionText.setString("Press any key to start");
+    instructionText.setCharacterSize(24);
+    instructionText.setFillColor(sf::Color::Green);
+
+    // Căn giữa hướng dẫn
+    sf::FloatRect instructionBounds = instructionText.getLocalBounds();
+    instructionText.setPosition(
+        (window_.getSize().x - instructionBounds.width) / 2,
+        maxLengthText.getPosition().y + 50
+    );
+
+    window_.draw(titleText);
+    window_.draw(maxLengthText);
+    window_.draw(instructionText);
+
+    // Hiển thị thông tin về items
+}
+
+void Hud::drawWinnerScreen(sf::RenderWindow& window_ ,int winner) {
+    if (winner == -1) return; // game still ongoing
+
+    // Tạo font để hiển thị
+    sf::Font font;
+    try {
+        if (!font.loadFromFile("assets/fonts/arial.ttf")) return;
+    } catch (const std::exception& e) {
+        std::cerr << "Error loading font in drawWinnerScreen: " << e.what() << std::endl;
+        return;
+    }
+
+    sf::Text winnerText, restartText;
+    winnerText.setFont(font);
+    restartText.setFont(font);
+
+    winnerText.setCharacterSize(48);
+    restartText.setCharacterSize(24);
+
+    // Xác định thông báo chiến thắng và màu sắc
+    if (winner == 1) {
+        winnerText.setString("P1 WIN!");
+        winnerText.setFillColor(sf::Color(135, 206, 235)); // Xanh dương nhạt (màu P1)
+    } else if (winner == 2) {
+        winnerText.setString("P2 WIN!");
+        winnerText.setFillColor(sf::Color::Yellow); // Vàng (màu P2)
+    } else {
+        winnerText.setString("TIE!");
+        winnerText.setFillColor(sf::Color::White); // Trắng cho hòa
+    }
+
+    restartText.setFillColor(sf::Color::Green);
+
+    restartText.setString("Press any button to restart");
+
+    // Căn giữa màn hình
+    sf::FloatRect winnerBounds = winnerText.getLocalBounds();
+    sf::FloatRect restartBounds = restartText.getLocalBounds();
+
+    winnerText.setPosition(
+        (window_.getSize().x - winnerBounds.width) / 2,
+        (window_.getSize().y - winnerBounds.height) / 2 - 50
+    );
+
+    restartText.setPosition(
+        (window_.getSize().x - restartBounds.width) / 2,
+        winnerText.getPosition().y + winnerBounds.height + 30
+    );
+
+    window_.draw(winnerText);
+    window_.draw(restartText);
 }

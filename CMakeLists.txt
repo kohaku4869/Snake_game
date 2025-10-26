@@ -14,7 +14,7 @@ add_executable(${PROJECT_NAME}
         src/main.cpp
         src/core/Config.hpp
         src/core/Types.hpp
-        src/core/Utils.hpp
+#        src/core/Utils.hpp
         src/core/Input.hpp
         src/Game.cpp
         src/Game.hpp
@@ -24,8 +24,12 @@ add_executable(${PROJECT_NAME}
         "src/entities/Snake.hpp"
         "src/entities/Bullet.cpp"
         "src/entities/Bullet.hpp"
-        "src/entities/Item.cpp"
-        "src/entities/Item.hpp"
+        "src/entities/BaseItem.cpp"
+        "src/entities/BaseItem.hpp"
+        "src/entities/Apple.cpp"
+        "src/entities/Apple.hpp"
+        "src/entities/BuffItem.cpp"
+        "src/entities/BuffItem.hpp"
         "src/systems/Collision.cpp"
         "src/systems/Collision.hpp"
         src/systems/Spawner.cpp
@@ -34,6 +38,8 @@ add_executable(${PROJECT_NAME}
         src/systems/SoundManager.hpp
         src/ui/Hud.cpp
         src/ui/Hud.hpp
+        src/entities/ItemFactory.hpp
+        #        src/core/Utils.hpp
 
 )
 

@@ -4,7 +4,7 @@
 #include "../core/Types.hpp"
 #include "../entities/Snake.hpp"
 #include "../entities/Bullet.hpp"
-#include "../entities/Item.hpp"
+#include "../entities/BaseItem.hpp"
 #include <vector>
 
 namespace collision {
@@ -13,12 +13,12 @@ namespace collision {
 
 	// xử lý đạn laser - gây sát thương tức thì trên đường thẳng
 	void handleLaserShot(Snake& shooter, std::vector<Snake*>& snakes);
-	
+
 	// vẽ tia laser màu xanh
 	void drawLaserShot(sf::RenderWindow& window, Snake& shooter);
 
 	// rắn ăn item theo khoảng cách
-	int snakeEatItem(Snake& s, std::vector<Item>& items);
+	int snakeEatItem(Snake& s, std::vector<std::unique_ptr<BaseItem>>& items);
 
 	// rắn đụng tường/thân?
 	void snakeSelfAndWall(Snake& s, const std::vector<Snake*>& snakes, int penalty);

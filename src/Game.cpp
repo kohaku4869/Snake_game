@@ -3,9 +3,13 @@
 #include "grid/Grid.hpp"
 #include "systems/Collision.hpp"
 #include "entities/Bullet.hpp"
-#include <algorithm>
+#include "entities/Apple.hpp"
+#include "entities/BuffItem.hpp"
+#include "ui/Hud.hpp"
 #include <algorithm>
 #include <limits>
+#include <fstream>
+#include <iostream>
 
 Game::Game()
 : window_(sf::VideoMode(cfg::GRID_W*cfg::CELL, cfg::GRID_H*cfg::CELL), "Snake Battle"),
@@ -13,34 +17,47 @@ Game::Game()
   p2_(2, sf::Color::Cyan,  {cfg::GRID_W-6, cfg::GRID_H-6}, Dir::Left, cfg::SNAKE_INIT_LEN)
 {
 	window_.setFramerateLimit(cfg::FPS);
-	p1_.setKeyMap(sf::Keyboard::W, sf::Keyboard::S, sf::Keyboard::A, sf::Keyboard::D, sf::Keyboard::W);
-	p2_.setKeyMap(sf::Keyboard::Up, sf::Keyboard::Down, sf::Keyboard::Left, sf::Keyboard::Right, sf::Keyboard::Up);
-	
-	// Load apple textures from NewTexture
-	apple_texture_.loadFromFile("assets/NewTexture/FoodApple.png");
-	green_apple_texture_.loadFromFile("assets/NewTexture/GreenApple.png");
-	pink_apple_texture_.loadFromFile("assets/NewTexture/PinkApple.png");
+	initPlayers();
 	
 	// Load background
-	background_texture_.loadFromFile("assets/NewTexture/background.jpg");
+	try {
+		background_texture_.loadFromFile("assets/NewTexture/background.jpg");
+		// start_screen_texture_.loadFromFile("assets/NewTexture/background.jpg");
+	} catch (const std::exception& e) {
+		std::cerr << "Error loading background textures: " << e.what() << std::endl;
+	}
 	
-	state_ = State::InGame; // demo vào game luôn
-	resetMatch();
+	// Load max length from file
+	max_length_ = loadMaxLength();
+	
+	// Khởi tạo STL containers
+	player_scores_[1] = 0;
+	player_scores_[2] = 0;
+	
+	state_ = State::Start; // Bắt đầu với màn hình start
 	
 	// Phát nhạc theme
-	sound_manager_.playTheme();
+	try {
+		sound_manager_.playTheme();
+	} catch (const std::exception& e) {
+		std::cerr << "Error playing theme music: " << e.what() << std::endl;
+	}
+}
+void Game::initPlayers() {
+	p1_ = Snake(1, sf::Color::Green, {5, 5}, Dir::Right, cfg::SNAKE_INIT_LEN);
+	p2_ = Snake(2, sf::Color::Cyan,  {cfg::GRID_W-6, cfg::GRID_H-6}, Dir::Left, cfg::SNAKE_INIT_LEN);
+	p1_.setKeyMap(sf::Keyboard::W, sf::Keyboard::S, sf::Keyboard::A, sf::Keyboard::D, sf::Keyboard::W);
+	p2_.setKeyMap(sf::Keyboard::Up, sf::Keyboard::Down, sf::Keyboard::Left, sf::Keyboard::Right, sf::Keyboard::Up);
 }
 
 void Game::resetMatch() {
 	bullets_.clear();
 	items_.clear();
+	occupied_cells_.clear();
 	round_ms_left_ = cfg::ROUND_TIME_S * 1000;
 	
 	// Reset rắn về vị trí ban đầu
-	p1_ = Snake(1, sf::Color::Green, {5, 5}, Dir::Right, cfg::SNAKE_INIT_LEN);
-	p2_ = Snake(2, sf::Color::Cyan, {cfg::GRID_W-6, cfg::GRID_H-6}, Dir::Left, cfg::SNAKE_INIT_LEN);
-	p1_.setKeyMap(sf::Keyboard::W, sf::Keyboard::S, sf::Keyboard::A, sf::Keyboard::D, sf::Keyboard::W);
-	p2_.setKeyMap(sf::Keyboard::Up, sf::Keyboard::Down, sf::Keyboard::Left, sf::Keyboard::Right, sf::Keyboard::Up);
+	initPlayers();
 	
 	// Reset boost time
 	p1_.resetBoostTime();
@@ -53,11 +70,18 @@ void Game::run() {
 		sf::Event e;
 		while (window_.pollEvent(e)) {
 			if (e.type == sf::Event::Closed) window_.close();
-			if (e.type == sf::Event::KeyPressed && state_ == State::Result) {
-				// Restart game khi nhấn phím bất kỳ
-				sound_manager_.playSound(SoundType::ButtonClick);
-				state_ = State::InGame;
-				resetMatch();
+			if (e.type == sf::Event::KeyPressed) {
+				if (state_ == State::Start) {
+					// Chuyển từ start screen sang game
+					sound_manager_.playSound(SoundType::ButtonClick);
+					state_ = State::InGame;
+					resetMatch();
+				} else if (state_ == State::Result) {
+					// Restart game khi nhấn phím bất kỳ
+					sound_manager_.playSound(SoundType::ButtonClick);
+					state_ = State::InGame;
+					resetMatch();
+				}
 			}
 		}
 		int dt = clk.restart().asMilliseconds();
@@ -88,11 +112,19 @@ void Game::update(int dt) {
 	// Cập nhật bullets và items
 	updateBullets(dt);
 	updateItems(dt);
+	
+	// Cập nhật STL containers
+	updatePlayerScores();
+	updateOccupiedCells();
+	processGameEvents();
+	
+	// Xử lý tạo items thủ công
+	handleItemCreation();
 
 	// Tạo vector snakes để truyền vào collision functions
 	std::vector<Snake*> snakes{ &p1_, &p2_ };
 
-	// collision: rắn–tường/thân (–2)
+	// collision: rắn–thân
 	collision::snakeSelfAndWall(p1_, snakes, cfg::HIT_HEAD_PENALTY);
 	collision::snakeSelfAndWall(p2_, snakes, cfg::HIT_HEAD_PENALTY);
 
@@ -101,8 +133,14 @@ void Game::update(int dt) {
 	int p2_eaten = collision::snakeEatItem(p2_, items_);
 	
 	// Phát âm thanh khi ăn
-	if (p1_eaten > 0) sound_manager_.playSound(SoundType::SnakeEat);
-	if (p2_eaten > 0) sound_manager_.playSound(SoundType::SnakeEat);
+	if (p1_eaten > 0) {
+		sound_manager_.playSound(SoundType::SnakeEat);
+		addGameEvent("Player 1 ate " + std::to_string(p1_eaten) + " items");
+	}
+	if (p2_eaten > 0) {
+		sound_manager_.playSound(SoundType::SnakeEat);
+		addGameEvent("Player 2 ate " + std::to_string(p2_eaten) + " items");
+	}
 
 	// đạn trúng rắn
 	for (auto& b : bullets_) {
@@ -125,6 +163,14 @@ void Game::update(int dt) {
 		// Phát âm thanh khi rắn chết
 		if (!p1_.alive()) sound_manager_.playSound(SoundType::SnakeDie);
 		if (!p2_.alive()) sound_manager_.playSound(SoundType::SnakeDie);
+		
+		// Cập nhật max length nếu cần
+		int current_max = std::max(p1_.length(), p2_.length());
+		if (current_max > max_length_) {
+			max_length_ = current_max;
+			saveMaxLength(max_length_);
+		}
+		
 		state_ = State::Result;
 	}
 
@@ -135,8 +181,9 @@ void Game::update(int dt) {
 
 void Game::draw() {
 	window_.clear(sf::Color(30,30,30));
-
-	if (state_ == State::InGame) {
+	if (state_ == State::Start) {
+		hud_.drawStartScreen(window_,background_texture_,loadMaxLength());
+	} else if (state_ == State::InGame) {
 		// Draw background
 		sf::Sprite background_sprite(background_texture_);
 		background_sprite.setScale(
@@ -146,7 +193,7 @@ void Game::draw() {
 		window_.draw(background_sprite);
 		// vẽ items
 		for (auto& it : items_) {
-			it.draw(window_);
+			it->draw(window_);
 		}
 
 		p1_.draw(window_);
@@ -156,7 +203,7 @@ void Game::draw() {
 
 		hud_.draw(window_, p1_, p2_, round_ms_left_);
 	} else if (state_ == State::Result) {
-		drawWinnerScreen();
+		hud_.drawWinnerScreen(window_,getWinner());
 	}
 
 	window_.display();
@@ -175,57 +222,142 @@ int Game::getWinner() const {
     return -1; // game still ongoing
 }
 
-void Game::drawWinnerScreen() {
-    int winner = getWinner();
-    if (winner == -1) return; // game still ongoing
+void Game::saveMaxLength(int length) {
+    try {
+        std::ofstream file("max_length.txt");
+        if (file.is_open()) {
+            file << length;
+            file.close();
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Error saving max length: " << e.what() << std::endl;
+    }
+}
+
+int Game::loadMaxLength() {
+    try {
+        std::ifstream file("max_length.txt");
+        if (file.is_open()) {
+            int length;
+            file >> length;
+            file.close();
+            return length;
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Error loading max length: " << e.what() << std::endl;
+    }
+    return 0; // Default value if file doesn't exist or error
+}
+
+void Game::updatePlayerScores() {
+    // Cập nhật điểm số dựa trên độ dài rắn
+    player_scores_[1] = p1_.length();
+    player_scores_[2] = p2_.length();
+}
+
+void Game::updateOccupiedCells() {
+    // Xóa tất cả các ô đã chiếm
+    occupied_cells_.clear();
     
-    // Tạo font để hiển thị
-    sf::Font font;
-    if (!font.loadFromFile("assets/fonts/arial.ttf")) return;
+    // Thêm các ô mà rắn đang chiếm
+    const auto& p1_body = p1_.bodyPx();
+    const auto& p2_body = p2_.bodyPx();
     
-    sf::Text winnerText, restartText;
-    winnerText.setFont(font);
-    restartText.setFont(font);
-    
-    winnerText.setCharacterSize(48);
-    restartText.setCharacterSize(24);
-    
-    // Xác định thông báo chiến thắng và màu sắc
-    if (winner == 1) {
-        winnerText.setString("P1 WIN!");
-        winnerText.setFillColor(sf::Color(135, 206, 235)); // Xanh dương nhạt (màu P1)
-    } else if (winner == 2) {
-        winnerText.setString("P2 WIN!");
-        winnerText.setFillColor(sf::Color::Yellow); // Vàng (màu P2)
-    } else {
-        winnerText.setString("TIE!");
-        winnerText.setFillColor(sf::Color::White); // Trắng cho hòa
+    for (const auto& pos : p1_body) {
+        Cell cell = Grid::toCell(pos);
+        occupied_cells_.insert(cell);
     }
     
-    restartText.setFillColor(sf::Color::Green);
+    for (const auto& pos : p2_body) {
+        Cell cell = Grid::toCell(pos);
+        occupied_cells_.insert(cell);
+    }
     
-    restartText.setString("Press any button to restart");
+    // Thêm các ô mà items đang chiếm
+    for (const auto& item : items_) {
+        if (item->isAlive()) {
+            occupied_cells_.insert(item->getCell());
+        }
+    }
+}
+
+void Game::addGameEvent(const std::string& event) {
+    game_events_.push(event);
     
-    // Căn giữa màn hình
-    sf::FloatRect winnerBounds = winnerText.getLocalBounds();
-    sf::FloatRect restartBounds = restartText.getLocalBounds();
-    
-    winnerText.setPosition(
-        (window_.getSize().x - winnerBounds.width) / 2,
-        (window_.getSize().y - winnerBounds.height) / 2 - 50
+    // Giới hạn số lượng events để tránh memory leak
+    if (game_events_.size() > 100) {
+        game_events_.pop();
+    }
+}
+
+void Game::processGameEvents() {
+    // Xử lý một số events từ queue (có thể mở rộng logic sau)
+    if (!game_events_.empty()) {
+        // Có thể thêm logic xử lý events ở đây
+        // Ví dụ: log events, update statistics, etc.
+    }
+}
+
+void Game::createAppleAt(Cell cell) {
+    // Sử dụng trực tiếp lớp Apple
+    items_.push_back(std::make_unique<Apple>(cell));
+    addGameEvent("Apple spawned at (" + std::to_string(cell.x) + ", " + std::to_string(cell.y) + ")");
+}
+
+void Game::createBuffAt(BuffType type, Cell cell, int lifetime_ms) {
+    // Sử dụng trực tiếp lớp BuffItem
+    items_.push_back(std::make_unique<BuffItem>(type, cell, lifetime_ms));
+    std::string buffName;
+    switch (type) {
+        case BuffType::Shield: buffName = "Shield"; break;
+        case BuffType::X2: buffName = "X2"; break;
+        case BuffType::Speed: buffName = "Speed"; break;
+        case BuffType::TripleShot: buffName = "TripleShot"; break;
+        case BuffType::LaserShot: buffName = "LaserShot"; break;
+        case BuffType::HomingShot: buffName = "HomingShot"; break;
+    }
+    addGameEvent(buffName + " buff spawned at (" + std::to_string(cell.x) + ", " + std::to_string(cell.y) + ")");
+}
+
+void Game::removeDeadItems() {
+    // Sử dụng STL algorithm để loại bỏ items đã chết
+    items_.erase(
+        std::remove_if(items_.begin(), items_.end(),
+            [](const std::unique_ptr<BaseItem>& item) {
+                return !item->isAlive();
+            }),
+        items_.end()
     );
+}
+
+void Game::handleItemCreation() {
+    // Tạo items thủ công khi nhấn phím (ví dụ: Space để tạo apple, B để tạo buff)
+    static bool space_pressed = false;
+    static bool b_pressed = false;
     
-    restartText.setPosition(
-        (window_.getSize().x - restartBounds.width) / 2,
-        winnerText.getPosition().y + winnerBounds.height + 30
-    );
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space) && !space_pressed) {
+        space_pressed = true;
+        // Tạo apple ở vị trí ngẫu nhiên
+        Cell randomCell = {rand() % cfg::GRID_W, rand() % cfg::GRID_H};
+        createAppleAt(randomCell);
+    } else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
+        space_pressed = false;
+    }
     
-    window_.draw(winnerText);
-    window_.draw(restartText);
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::B) && !b_pressed) {
+        b_pressed = true;
+        // Tạo buff ngẫu nhiên
+        Cell randomCell = {rand() % cfg::GRID_W, rand() % cfg::GRID_H};
+        BuffType randomBuff = static_cast<BuffType>(rand() % 6);
+        createBuffAt(randomBuff, randomCell, 10000); // 10 giây
+    } else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::B)) {
+        b_pressed = false;
+    }
 }
 
 // Helper function để xử lý bắn đạn, giảm code trùng lặp
 void Game::handleShooting(Snake& shooter, Snake& target) {
+    // Sử dụng hàm với STL containers
     auto newBullets = shooter.createBullets();
     for (auto& bullet : newBullets) {
         // Đặt mục tiêu cho đạn đuổi
@@ -274,8 +406,10 @@ void Game::updateBullets(int dt_ms) {
 // Helper function để cập nhật items
 void Game::updateItems(int dt_ms) {
     // Cập nhật items
-    for (auto& it : items_) it.update(dt_ms);
-    items_.erase(std::remove_if(items_.begin(), items_.end(), [](auto& x){return !x.isAlive();}), items_.end());
+    for (auto& it : items_) it->update(dt_ms);
+    
+	// Sử dụng hàm mới để loại bỏ items đã chết
+	removeDeadItems();
 
     // Spawn items
     std::vector<Snake*> snakes{ &p1_, &p2_ };

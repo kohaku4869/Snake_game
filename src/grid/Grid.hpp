@@ -10,4 +10,7 @@ public:
     static sf::Vector2f toPixel(const Cell& c) {
         return { c.x * cfg::CELL * 1.f, c.y * cfg::CELL * 1.f };
     }
+    static Cell toCell(const sf::Vector2f& pos) {
+        return { static_cast<int>(pos.x / cfg::CELL), static_cast<int>(pos.y / cfg::CELL) };
+    }
 };

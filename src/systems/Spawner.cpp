@@ -1,5 +1,7 @@
 #include "Spawner.hpp"
 #include "../core/Config.hpp"
+#include "../entities/Apple.hpp"
+#include "../entities/BuffItem.hpp"
 #include <random>
 #include <unordered_set>
 
@@ -9,7 +11,7 @@ static std::mt19937& rng() {
 }
 
 static Cell randomFreeCell(const std::vector<Snake*>& snakes,
-const std::vector<Item>& items) {
+const std::vector<std::unique_ptr<BaseItem>>& items) {
 	std::unordered_set<long long> occ;
 	auto key = [](const Cell& c){ return (long long)c.x << 32 | (unsigned)c.y; };
 	for (auto s : snakes) {
@@ -19,8 +21,8 @@ const std::vector<Item>& items) {
 		}
 	}
 	for (const auto& it : items) {
-		if (it.isAlive()) {
-			occ.insert(key(it.getCell()));
+		if (it->isAlive()) {
+			occ.insert(key(it->getCell()));
 		}
 	}
 
@@ -32,11 +34,11 @@ const std::vector<Item>& items) {
 	return {1,1}; // fallback
 }
 
-void Spawner::update(int dt_ms, const std::vector<Snake*>& snakes, std::vector<Item>& items) {
+void Spawner::update(int dt_ms, const std::vector<Snake*>& snakes, std::vector<std::unique_ptr<BaseItem>>& items) {
 	// Cập nhật thời gian sống của buff và xóa buff hết hạn
 	for (auto it = items.begin(); it != items.end();) {
-		it->update(dt_ms);
-		if (!it->isAlive()) {
+		(*it)->update(dt_ms);
+		if (!(*it)->isAlive()) {
 			it = items.erase(it);
 			continue;
 		}
@@ -47,7 +49,7 @@ void Spawner::update(int dt_ms, const std::vector<Snake*>& snakes, std::vector<I
 	int apple_count = 0;
 	int buff_count = 0;
 	for (const auto& item : items) {
-		if (item.getKind() == ItemKind::Apple) {
+		if (dynamic_cast<Apple*>(item.get())) {
 			apple_count++;
 		} else {
 			buff_count++;
@@ -59,9 +61,9 @@ void Spawner::update(int dt_ms, const std::vector<Snake*>& snakes, std::vector<I
 	if (apple_acc_ms_ >= cfg::APPLE_SPAWN_EVERY_MS && apple_count < cfg::MAX_APPLES_ON_SCREEN) {
 		apple_acc_ms_ = 0;
 		Cell cell = randomFreeCell(snakes, items);
-		
-		// Chỉ spawn táo thường
-		items.emplace_back(ItemKind::Apple, cell, 0);
+
+		// Tạo Apple object mới
+		items.push_back(std::make_unique<Apple>(cell));
 	}
 
 	// Spawn buff (10s một buff, tối đa 1 buff)
@@ -69,21 +71,22 @@ void Spawner::update(int dt_ms, const std::vector<Snake*>& snakes, std::vector<I
 	if (buff_acc_ms_ >= cfg::BUFF_SPAWN_EVERY_MS && buff_count < cfg::MAX_BUFFS_ON_SCREEN) {
 		buff_acc_ms_ = 0;
 		Cell cell = randomFreeCell(snakes, items);
-		
+
 		// Chọn loại buff ngẫu nhiên (bao gồm cả buff đạn)
 		std::uniform_int_distribution<int> t(0, 5);
 		int k = t(rng());
-		ItemKind kind;
+		BuffType buffType;
 		switch (k) {
-			case 0: kind = ItemKind::Shield; break;
-			case 1: kind = ItemKind::X2; break;
-			case 2: kind = ItemKind::Speed; break;
-			case 3: kind = ItemKind::TripleShot; break;
-			case 4: kind = ItemKind::LaserShot; break;
-			case 5: kind = ItemKind::HomingShot; break;
-			default: kind = ItemKind::Shield; break;
+			case 0: buffType = BuffType::Shield; break;
+			case 1: buffType = BuffType::X2; break;
+			case 2: buffType = BuffType::Speed; break;
+			case 3: buffType = BuffType::TripleShot; break;
+			case 4: buffType = BuffType::LaserShot; break;
+			case 5: buffType = BuffType::HomingShot; break;
+			default: buffType = BuffType::Shield; break;
 		}
-		
-		items.emplace_back(kind, cell, cfg::BUFF_LIFETIME_MS);
+
+		// Tạo BuffItem object mới
+		items.push_back(std::make_unique<BuffItem>(buffType, cell, cfg::BUFF_LIFETIME_MS));
 	}
 }

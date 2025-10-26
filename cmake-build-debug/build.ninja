@@ -84,8 +84,22 @@ build CMakeFiles/snake_game.dir/src/entities/Bullet.cpp.obj: CXX_COMPILER__snake
   OBJECT_DIR = CMakeFiles\snake_game.dir
   OBJECT_FILE_DIR = CMakeFiles\snake_game.dir\src\entities
 
-build CMakeFiles/snake_game.dir/src/entities/Item.cpp.obj: CXX_COMPILER__snake_game_unscanned_Debug D$:/lap_trinh/c++/snake_game/src/entities/Item.cpp || cmake_object_order_depends_target_snake_game
-  DEP_FILE = CMakeFiles\snake_game.dir\src\entities\Item.cpp.obj.d
+build CMakeFiles/snake_game.dir/src/entities/BaseItem.cpp.obj: CXX_COMPILER__snake_game_unscanned_Debug D$:/lap_trinh/c++/snake_game/src/entities/BaseItem.cpp || cmake_object_order_depends_target_snake_game
+  DEP_FILE = CMakeFiles\snake_game.dir\src\entities\BaseItem.cpp.obj.d
+  FLAGS = -g -std=c++17 -fdiagnostics-color=always
+  INCLUDES = -ID:/lap_trinh/c++/snake_game/src -isystem F:/Progams/msys64/mingw64/include
+  OBJECT_DIR = CMakeFiles\snake_game.dir
+  OBJECT_FILE_DIR = CMakeFiles\snake_game.dir\src\entities
+
+build CMakeFiles/snake_game.dir/src/entities/Apple.cpp.obj: CXX_COMPILER__snake_game_unscanned_Debug D$:/lap_trinh/c++/snake_game/src/entities/Apple.cpp || cmake_object_order_depends_target_snake_game
+  DEP_FILE = CMakeFiles\snake_game.dir\src\entities\Apple.cpp.obj.d
+  FLAGS = -g -std=c++17 -fdiagnostics-color=always
+  INCLUDES = -ID:/lap_trinh/c++/snake_game/src -isystem F:/Progams/msys64/mingw64/include
+  OBJECT_DIR = CMakeFiles\snake_game.dir
+  OBJECT_FILE_DIR = CMakeFiles\snake_game.dir\src\entities
+
+build CMakeFiles/snake_game.dir/src/entities/BuffItem.cpp.obj: CXX_COMPILER__snake_game_unscanned_Debug D$:/lap_trinh/c++/snake_game/src/entities/BuffItem.cpp || cmake_object_order_depends_target_snake_game
+  DEP_FILE = CMakeFiles\snake_game.dir\src\entities\BuffItem.cpp.obj.d
   FLAGS = -g -std=c++17 -fdiagnostics-color=always
   INCLUDES = -ID:/lap_trinh/c++/snake_game/src -isystem F:/Progams/msys64/mingw64/include
   OBJECT_DIR = CMakeFiles\snake_game.dir
@@ -127,7 +141,7 @@ build CMakeFiles/snake_game.dir/src/ui/Hud.cpp.obj: CXX_COMPILER__snake_game_uns
 #############################################
 # Link the executable snake_game.exe
 
-build snake_game.exe: CXX_EXECUTABLE_LINKER__snake_game_Debug CMakeFiles/snake_game.dir/src/main.cpp.obj CMakeFiles/snake_game.dir/src/Game.cpp.obj CMakeFiles/snake_game.dir/src/grid/Grid.cpp.obj CMakeFiles/snake_game.dir/src/entities/Snake.cpp.obj CMakeFiles/snake_game.dir/src/entities/Bullet.cpp.obj CMakeFiles/snake_game.dir/src/entities/Item.cpp.obj CMakeFiles/snake_game.dir/src/systems/Collision.cpp.obj CMakeFiles/snake_game.dir/src/systems/Spawner.cpp.obj CMakeFiles/snake_game.dir/src/systems/SoundManager.cpp.obj CMakeFiles/snake_game.dir/src/ui/Hud.cpp.obj | F$:/Progams/msys64/mingw64/lib/libsfml-graphics.dll.a F$:/Progams/msys64/mingw64/lib/libsfml-audio.dll.a F$:/Progams/msys64/mingw64/lib/libsfml-window.dll.a F$:/Progams/msys64/mingw64/lib/libsfml-system.dll.a
+build snake_game.exe: CXX_EXECUTABLE_LINKER__snake_game_Debug CMakeFiles/snake_game.dir/src/main.cpp.obj CMakeFiles/snake_game.dir/src/Game.cpp.obj CMakeFiles/snake_game.dir/src/grid/Grid.cpp.obj CMakeFiles/snake_game.dir/src/entities/Snake.cpp.obj CMakeFiles/snake_game.dir/src/entities/Bullet.cpp.obj CMakeFiles/snake_game.dir/src/entities/BaseItem.cpp.obj CMakeFiles/snake_game.dir/src/entities/Apple.cpp.obj CMakeFiles/snake_game.dir/src/entities/BuffItem.cpp.obj CMakeFiles/snake_game.dir/src/systems/Collision.cpp.obj CMakeFiles/snake_game.dir/src/systems/Spawner.cpp.obj CMakeFiles/snake_game.dir/src/systems/SoundManager.cpp.obj CMakeFiles/snake_game.dir/src/ui/Hud.cpp.obj | F$:/Progams/msys64/mingw64/lib/libsfml-graphics.dll.a F$:/Progams/msys64/mingw64/lib/libsfml-audio.dll.a F$:/Progams/msys64/mingw64/lib/libsfml-window.dll.a F$:/Progams/msys64/mingw64/lib/libsfml-system.dll.a
   FLAGS = -g
   LINK_LIBRARIES = F:/Progams/msys64/mingw64/lib/libsfml-graphics.dll.a  F:/Progams/msys64/mingw64/lib/libsfml-audio.dll.a  F:/Progams/msys64/mingw64/lib/libsfml-window.dll.a  F:/Progams/msys64/mingw64/lib/libsfml-system.dll.a  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\snake_game.dir

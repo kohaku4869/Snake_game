@@ -1,5 +1,7 @@
 #include "Collision.hpp"
 #include "../core/Config.hpp"
+#include "../entities/Apple.hpp"
+#include "../entities/BuffItem.hpp"
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -138,33 +140,36 @@ void collision::drawLaserShot(sf::RenderWindow& window, Snake& shooter) {
 	window.draw(thinLine, 2, sf::Lines);
 }
 
-int collision::snakeEatItem(Snake& s, std::vector<Item>& items) {
+int collision::snakeEatItem(Snake& s, std::vector<std::unique_ptr<BaseItem>>& items) {
 	int eaten = 0;
 	if (!s.alive()) return eaten;
 	sf::Vector2f h = s.headPx();
 	float rad = cfg::SNAKE_RADIUS_PX + cfg::ITEM_RADIUS_PX;
 	float rad2 = rad*rad;
 	for (size_t i = 0; i < items.size();) {
-		if (!items[i].isAlive()) {
+		if (!items[i]->isAlive()) {
 			++i;
 			continue;
 		}
 		
-		sf::Vector2f ip = items[i].getPosition();
+		sf::Vector2f ip = items[i]->getPosition();
 		if (dist2(ip, h) <= rad2) {
-			switch (items[i].getKind()) {
-				case ItemKind::Apple: 
-					// Táo thường = tăng độ dài
-					s.grow(s.hasX2() ? 2 : 1);
-					break;
-				case ItemKind::Shield: s.giveShield(1); break;
-				case ItemKind::X2: s.giveX2(30000); break;
-				case ItemKind::Speed: s.giveSpeed(5000); break;
-				case ItemKind::TripleShot: s.giveTripleShot(2); break;
-				case ItemKind::LaserShot: s.giveLaserShot(2); break;
-				case ItemKind::HomingShot: s.giveHomingShot(2); break;
+			// Sử dụng dynamic_cast để xác định loại item
+			if (auto* apple = dynamic_cast<Apple*>(items[i].get())) {
+				// Táo thường = tăng độ dài
+				s.grow(s.hasX2() ? 2 : 1);
+			} else if (auto* buffItem = dynamic_cast<BuffItem*>(items[i].get())) {
+				// Xử lý buff items
+				switch (buffItem->getBuffType()) {
+					case BuffType::Shield: s.giveShield(1); break;
+					case BuffType::X2: s.giveX2(30000); break;
+					case BuffType::Speed: s.giveSpeed(5000); break;
+					case BuffType::TripleShot: s.giveTripleShot(3); break;
+					case BuffType::LaserShot: s.giveLaserShot(3); break;
+					case BuffType::HomingShot: s.giveHomingShot(3); break;
+				}
 			}
-			items[i].consume();
+			items[i]->consume();
 			items.erase(items.begin() + i);
 			++eaten;
 		} else ++i;
