@@ -69,7 +69,7 @@ void Hud::drawStartScreen(sf::RenderWindow& window_,const sf::Texture& start_scr
     // Tiêu đề game
     sf::Text titleText;
     titleText.setFont(font);
-    titleText.setString("SNAKE BATTLE");
+    titleText.setString("SNAKE DUEL");
     titleText.setCharacterSize(64);
     titleText.setFillColor(sf::Color::Yellow);
     titleText.setStyle(sf::Text::Bold);

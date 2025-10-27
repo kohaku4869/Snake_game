@@ -35,3 +35,13 @@
 3732	4878	7832787800561740	CMakeFiles/snake_game.dir/src/ui/Hud.cpp.obj	c4ceac84e96de0ad
 2620	4948	7832787789439728	CMakeFiles/snake_game.dir/src/systems/Spawner.cpp.obj	68912ce7af00945a
 4948	8995	7832787812718699	snake_game.exe	50c429483807062b
+23	925	7832794996019915	CMakeFiles/snake_game.dir/src/ui/Hud.cpp.obj	c4ceac84e96de0ad
+925	2195	7832795005047208	snake_game.exe	50c429483807062b
+211	1348	7832846200856787	CMakeFiles/snake_game.dir/src/entities/Apple.cpp.obj	7e6306754e354705
+1349	7917	7832846212223015	snake_game.exe	50c429483807062b
+198	1323	7832873801454203	CMakeFiles/snake_game.dir/src/entities/Bullet.cpp.obj	6cc7f22e1b8fddd2
+202	1489	7832873801494234	CMakeFiles/snake_game.dir/src/systems/Collision.cpp.obj	e38298fcea0759dd
+182	1563	7832873801284487	CMakeFiles/snake_game.dir/src/main.cpp.obj	e002b8cb5345dcee
+193	1713	7832873801403266	CMakeFiles/snake_game.dir/src/entities/Snake.cpp.obj	478836fa19ca6504
+188	2069	7832873801351463	CMakeFiles/snake_game.dir/src/Game.cpp.obj	5aa584e2b4619133
+2070	6501	7832873820162543	snake_game.exe	50c429483807062b

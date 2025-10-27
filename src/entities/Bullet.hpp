@@ -27,6 +27,7 @@ public:
 
 private:
 	int ownerId_;
+	float speed_;
 	sf::Vector2f pos_;   // pixel
 	float heading_rad_ = 0.f;
 	bool alive_ = true;
@@ -34,6 +35,6 @@ private:
 	
 	// Cho đạn đuổi
 	int target_snake_id_ = -1;
-	sf::Vector2f target_pos_;
+		sf::Vector2f target_pos_;
 	bool has_target_ = false;
 };

@@ -66,7 +66,7 @@ private:
     SoundManager sound_manager_;
     
     // STL containers để quản lý dữ liệu game
-    std::map<int, int> player_scores_;           // Map lưu điểm số của từng player
+    std::map<int, int> player_scores_;      // Map lưu điểm số của từng player
     std::set<sf::Vector2i, Vec2iLess> occupied_cells_;
     std::queue<std::string> game_events_;        // Queue lưu các sự kiện game
     
