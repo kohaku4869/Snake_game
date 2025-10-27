@@ -16,7 +16,7 @@ BuffItem::BuffItem(BuffType type, Cell cell, int lifetime_ms)
     loadTextures();
 }
 
-void BuffItem::loadTextures() {
+    void BuffItem::loadTextures() {
     if (!textures_loaded_) {
         try {
             BaseItem::loadTexture(shield_texture_, "assets/Item/Shield.png");

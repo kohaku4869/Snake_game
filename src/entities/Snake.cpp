@@ -15,13 +15,7 @@ namespace {
     float cellsPerSec(const Snake& s) {
         float base = cfg::SNAKE_SPEED_CPS;
         float factor = 1.f;
-        // speed buff
-        // X2 dùng cho ăn táo (đã xử lý nơi khác)
-        // tăng tốc độ khi có speed buff
-        // (nếu muốn cộng dồn có thể nhân thêm)
-        // hiện chỉ một mức boost
-        // tránh chia 0
-        return base * (factor + (s.hasX2() ? 0.f : 0.f));
+        return base * factor;
     }
 }
 

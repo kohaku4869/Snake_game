@@ -24,3 +24,11 @@ enum class Dir {
     Left,
     Right
 };
+enum class SoundType {
+    SnakeMove,
+    SnakeEat,
+    SnakeDie,
+    ButtonClick,
+    ButtonOver,
+    Theme
+};

@@ -143,7 +143,10 @@ void Game::update(int dt) {
 	for (auto& b : bullets_) {
 		auto [hitSnake, headHit] = collision::bulletHitSnake(b, snakes);
 		if (hitSnake) {
-			if (hitSnake->alive()) {
+			if(hitSnake->hasShield()) {
+				hitSnake->useShield();
+			}
+			else if (hitSnake->alive()) {
 				int dmg = headHit ? cfg::HIT_HEAD_PENALTY : cfg::HIT_BODY_PENALTY;
 				if (b.type() == BulletType::Laser) {
 					dmg *= 2;

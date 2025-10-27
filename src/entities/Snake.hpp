@@ -61,12 +61,14 @@ public:
 	bool hasTripleShot() const { return buffs_.triple_shot_ammo > 0; }
 	bool hasLaserShot() const { return buffs_.laser_shot_ammo > 0; }
 	bool hasHomingShot() const { return buffs_.homing_shot_ammo > 0; }
+	bool hasShield() const { return buffs_.shield > 0; }
 	
 	// Sử dụng đạn
 	void useTripleShot() { if (buffs_.triple_shot_ammo > 0) buffs_.triple_shot_ammo--; }
 	void useLaserShot() { if (buffs_.laser_shot_ammo > 0) buffs_.laser_shot_ammo--; }
 	void useHomingShot() { if (buffs_.homing_shot_ammo > 0) buffs_.homing_shot_ammo--; }
-	
+	void useShield(){if(buffs_.shield>0)buffs_.shield--;}
+
 	// boost system
 	void startBoost();
 	void stopBoost();

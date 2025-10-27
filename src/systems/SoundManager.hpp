@@ -1,16 +1,10 @@
 #pragma once
 #include <SFML/Audio.hpp>
+#include "core/Types.hpp"
 #include <map>
 #include <string>
 
-enum class SoundType {
-    SnakeMove,
-    SnakeEat,
-    SnakeDie,
-    ButtonClick,
-    ButtonOver,
-    Theme
-};
+
 
 class SoundManager {
 public:
