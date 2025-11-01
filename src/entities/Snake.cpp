@@ -332,6 +332,6 @@ std::vector<Bullet> Snake::createBullets() {
         // Đạn bình thường
         bullets.emplace_back(id_, headPos, heading, BulletType::Normal);
     }
-    
+    shrink(1);
     return bullets;
 }

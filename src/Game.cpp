@@ -62,6 +62,9 @@ void Game::resetMatch() {
 	// Reset boost time
 	p1_.resetBoostTime();
 	p2_.resetBoostTime();
+	
+	// Reset cờ cộng điểm
+	score_added_ = false;
 }
 
 void Game::run() {
@@ -202,7 +205,17 @@ void Game::draw() {
 
 		hud_.draw(window_, p1_, p2_, round_ms_left_);
 	} else if (state_ == State::Result) {
-		hud_.drawWinnerScreen(window_,getWinner());
+		// Chỉ cộng điểm một lần khi chuyển sang Result state
+		if (!score_added_) {
+			if(getWinner()==1)score_p1++;
+			else if(getWinner()==2)score_p2++;
+			else {
+				score_p1++;
+				score_p2++;
+			}
+			score_added_ = true;
+		}
+		hud_.drawWinnerScreen(window_,getWinner(),score_p1,score_p2);
 	}
 
 	window_.display();

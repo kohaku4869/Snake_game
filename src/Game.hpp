@@ -59,6 +59,8 @@ private:
 
     Snake p1_;
     Snake p2_;
+    int score_p1 = 0;
+    int score_p2 = 0;
     std::vector<Bullet> bullets_;
     std::vector<std::unique_ptr<BaseItem>> items_;
     Spawner spawner_;
@@ -76,4 +78,5 @@ private:
 
     int round_ms_left_;
     int max_length_ = 0; // Lưu trữ chiều dài tối đa
+    bool score_added_ = false; // Cờ để chỉ cộng điểm một lần
 };
